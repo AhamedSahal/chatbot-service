@@ -4,7 +4,7 @@ const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: 'root123',
-    database: 'tudo_db'
+    database: 'hrmsdb'
 });
 
 connection.connect((err) => {
