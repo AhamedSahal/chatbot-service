@@ -3,6 +3,7 @@ const { getOpenAIResponse } = require("./openaiServices");
 
 async function getHolidayReply(userMessage, locationId, authHeader, companyId) {
   const year = new Date().getFullYear();
+  const currentDate = new Date().toISOString().split('T')[0]; // Format as YYYY-MM-DD
   const baseUrl = process.env.HRMS_API_TOKEN || "https://default-hrms-api-url.com";
 
   // Construct the query string
@@ -27,26 +28,9 @@ async function getHolidayReply(userMessage, locationId, authHeader, companyId) {
     const holidays = response.data?.data?.list || [];
     console.log("Holidays data:", holidays);
 
-    if (!holidays.length) {
-      console.warn(`No holiday data found for location ID: ${locationId}`);
-      return `No holiday data available for the location ID: ${locationId}. Please verify the location ID or try again later.`;
-    }
-
-    if (userMessage.includes("next holiday")) {
-      const upcoming = holidays.find(h => new Date(h.date) > new Date());
-      if (upcoming) {
-        const prompt = `Generate a concise response in maximum 50 words for the following holiday information:\n\nHoliday Name: ${upcoming.occasion}\nDate: ${upcoming.date}`;
-        const openAIResponse = await getOpenAIResponse(prompt);
-        return openAIResponse;
-      } else {
-        return "No upcoming holidays found.";
-      }
-    } else {
-      const list = holidays.map(h => `- ${h.occasion}: ${h.date}`).join("\n");
-      const prompt = `Generate a polite and conversational response for the following list of holidays for the year ${year}:\n\n${list}`;
-      const openAIResponse = await getOpenAIResponse(prompt);
-      return openAIResponse;
-    }
+    // Pass the current date and holidays array to OpenAI for analysis
+    const prompt = `Today's date is ${currentDate}. Here is the holiday data for the year ${year}: ${JSON.stringify(holidays)}.\n\nUser query: ${userMessage}\n\nPlease analyze the data and provide a concise response.`;
+    return await getOpenAIResponse(prompt);
   } catch (error) {
     if (error.response?.status === 404) {
       console.error("Holiday API returned 404: Not Found");
