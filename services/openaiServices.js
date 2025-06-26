@@ -4,7 +4,22 @@ const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
 const openai = new OpenAIApi(configuration);
 
 async function getOpenAIResponse(userMessage) {
-  const hrmsKeywords = ["leave", "holiday", "attendance", "payroll", "HR", "employee"];
+  const greetings = ["hi", "hello","thanks","how are you", "hey", "good morning", "good evening"];
+  const isGreeting = greetings.some(greeting => userMessage.toLowerCase().includes(greeting));
+
+  if (isGreeting) {
+    const greetingPrompt = `You are a friendly assistant. Respond warmly and politely to the user's greeting.`;
+    const greetingResponse = await openai.createChatCompletion({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: greetingPrompt },
+        { role: "user", content: userMessage },
+      ],
+    });
+    return greetingResponse.data.choices[0].message.content;
+  }
+
+  const hrmsKeywords = ["leave", "announcement", "holiday", "attendance", "payroll", "HR", "employee"];
   const isHRMSQuery = hrmsKeywords.some(keyword => userMessage.toLowerCase().includes(keyword));
 
   if (!isHRMSQuery) {
