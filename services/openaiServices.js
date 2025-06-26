@@ -19,7 +19,14 @@ async function getOpenAIResponse(userMessage) {
     return greetingResponse.data.choices[0].message.content;
   }
 
-  const hrmsKeywords = ["leave", "announcement", "holiday", "attendance", "payroll", "HR", "employee"];
+  const hrmsKeywords = [
+    "leave", "announcement", "holiday", "attendance", "payroll", "HR", "employee",
+    "profile", "department", "division", "grade", "job title", "designation", "role",
+    "function", "section", "shift", "branch", "location", "workplace", "joining date",
+    "doj", "nationality", "gender", "marital status", "manager", "experience",
+    "language", "email", "phone", "contact", "employee id", "emp id", "salary",
+    "allowance", "bank", "account", "personal info", "company info", "my info", "blood group"
+  ];
   const isHRMSQuery = hrmsKeywords.some(keyword => userMessage.toLowerCase().includes(keyword));
 
   if (!isHRMSQuery) {

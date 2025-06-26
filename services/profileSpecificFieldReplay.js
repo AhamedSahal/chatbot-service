@@ -53,7 +53,7 @@ async function getSpecificFieldReply(field, employeeId, authHeader, companyId) {
     }
 
     const formattedField = field.replace(/([A-Z])/g, " $1").toLowerCase();
-    const prompt = `The ${formattedField} is "${value}". Please respond in a formal and polite tone, avoiding phrases like 'Based on the data' or 'The data shows'. Keep it direct and clear.`;
+    const prompt = `You are an HRMS chatbot assistant. Respond with only:  "Your ${formattedField} is ${value}". Keep it simple and concise - no additional questions, or explanations.`;
 
     return await getOpenAIResponse(prompt);
   } catch (err) {
