@@ -14,7 +14,9 @@ const db = require('./db');
 
 const { handleChatbotRequest } = require('./controllers/chatbotController');
 
-
+app.get("/", (req, res) => {
+  res.send("Ahmed Successfully deployed");
+});
 
 // API Route to Handle OpenAI Chatbot Request
 app.post('/api/chat', handleChatbotRequest);
