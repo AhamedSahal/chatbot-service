@@ -1,5 +1,5 @@
-const axios = require("axios");
-const { getOpenAIResponse } = require("./openaiServices");
+import axios from "axios";
+import { getOpenAIResponse } from "./openaiServices.js";
 
 
 
@@ -37,6 +37,6 @@ async function getUpcomingAnnouncementReply(userMessage, locationId, authHeader,
     }
 }
 
-module.exports = {
-    getUpcomingAnnouncementReply,
+export {
+    getUpcomingAnnouncementReply
 };

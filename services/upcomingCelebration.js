@@ -1,5 +1,5 @@
-const axios = require("axios");
-const { getOpenAIResponse } = require("./openaiServices");
+import axios from "axios";
+import { getOpenAIResponse } from "./openaiServices.js";
 
 async function getUpcomingCelebrationReply(userMessage, locationId, authHeader, companyId) {
     const baseUrl = process.env.HRMS_API_TOKEN || "https://default-hrms-api-url.com";
@@ -38,6 +38,6 @@ async function getUpcomingCelebrationReply(userMessage, locationId, authHeader, 
     }
 
 }
-module.exports = {
-    getUpcomingCelebrationReply,
+export {
+    getUpcomingCelebrationReply
 };

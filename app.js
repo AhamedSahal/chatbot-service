@@ -1,25 +1,23 @@
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { handleChatbotRequest } from './controllers/chatbotController.js';
 
-const express = require('express');
-const cors = require('cors');
+dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3001; // Import port from .env file
+const port = process.env.PORT || 3001; 
 
 app.use(cors()); // To handle CORS errors
-app.use(express.json()); // To parse JSON bodies
 
-// Update to use the new db.js file
-const db = require('./db');
-
-const { handleChatbotRequest } = require('./controllers/chatbotController');
+// ...existing code...
 
 app.get("/", (req, res) => {
-  res.send("Ahmed Successfully deployed");
+  res.send("Successfully deployed");
 });
 
 // API Route to Handle OpenAI Chatbot Request
-app.post('/api/chat', handleChatbotRequest);
+app.post('/api/chat', express.json(), handleChatbotRequest);
 
 // Start the server
 app.listen(port, () => {

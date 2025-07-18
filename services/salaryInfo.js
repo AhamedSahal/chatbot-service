@@ -1,5 +1,5 @@
-const axios = require("axios");
-const { getOpenAIResponse } = require("./openaiServices");
+import axios from "axios";
+import { getOpenAIResponse } from "./openaiServices.js";
 
 async function getSalaryInfoReply(userMessage, locationId, authHeader, companyId, employeeId) {
     const baseUrl = process.env.HRMS_API_TOKEN || "https://default-hrms-api-url.com";
@@ -31,7 +31,7 @@ async function getSalaryInfoReply(userMessage, locationId, authHeader, companyId
 
         // Combine salary and allowance information
         const combinedInfo = { ...salaryInfo, allowance: allowanceInfo };
-       
+       console.log("Combined Salary and Allowance Information:", combinedInfo);
         // Pass the combined information to OpenAI for analysis
         const prompt = `Here is the Salary and Allowance Information data: ${JSON.stringify(combinedInfo)}.\n\nUser query: ${userMessage}\n\nPlease provide a formal and direct response, avoiding phrases like 'Based on the provided data'.`;
         return await getOpenAIResponse(prompt);
@@ -45,6 +45,6 @@ async function getSalaryInfoReply(userMessage, locationId, authHeader, companyId
     }
 }
 
-module.exports = {
-    getSalaryInfoReply,
+export {
+    getSalaryInfoReply
 };

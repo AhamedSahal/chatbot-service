@@ -1,5 +1,5 @@
-const axios = require("axios");
-const { getOpenAIResponse } = require("./openaiServices");
+import axios from "axios";
+import { getOpenAIResponse } from "./openaiServices.js";
 
 
 async function getBankInfoReply(employeeId, authHeader, companyId) {
@@ -29,6 +29,4 @@ async function getBankInfoReply(employeeId, authHeader, companyId) {
         throw error;
     }
 }
-module.exports = {
-    getBankInfoReply,
-};
+export { getBankInfoReply };

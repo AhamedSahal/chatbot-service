@@ -1,5 +1,5 @@
-const axios = require("axios");
-const { getOpenAIResponse } = require("./openaiServices");
+import axios from "axios";
+import { getOpenAIResponse } from "./openaiServices.js";
 
 async function getHolidayReply(userMessage, locationId, authHeader, companyId) {
   const year = new Date().getFullYear();
@@ -41,6 +41,4 @@ async function getHolidayReply(userMessage, locationId, authHeader, companyId) {
   }
 }
 
-module.exports = {
-  getHolidayReply,
-};
+export { getHolidayReply };

@@ -1,5 +1,5 @@
-const axios = require("axios");
-const { getOpenAIResponse } = require("./openaiServices");
+import axios from "axios";
+import { getOpenAIResponse } from "./openaiServices.js";
 
 async function getSpecificFieldReply(field, employeeId, authHeader, companyId) {
   const baseUrl = process.env.HRMS_API_TOKEN;
@@ -62,6 +62,6 @@ async function getSpecificFieldReply(field, employeeId, authHeader, companyId) {
   }
 }
 
-module.exports = {
-  getSpecificFieldReply,
+export {
+  getSpecificFieldReply
 };
