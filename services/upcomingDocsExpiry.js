@@ -1,5 +1,5 @@
-const axios = require("axios");
-const { getOpenAIResponse } = require("./openaiServices");
+import axios from "axios";
+import { getOpenAIResponse } from "./openaiServices.js";
 
 async function getUpcomingDocsExpiryReply(userMessage, locationId, authHeader, companyId) {
     const baseUrl = process.env.HRMS_API_TOKEN || "https://default-hrms-api-url.com";
@@ -24,14 +24,17 @@ async function getUpcomingDocsExpiryReply(userMessage, locationId, authHeader, c
             return `No upcoming Expiry Documents available.`;
         }
 
-        // Pass the entire Expiry Documents array to OpenAI for analysis
-        const prompt = `Here is the Expiry Documents data: ${JSON.stringify(expiryDocuments)}.\n\nUser query: ${userMessage}\n\nPlease analyze the data and provide an appropriate response.`;
-        return await getOpenAIResponse(prompt);
+        // Use OpenAI to answer user's question based on expiryDocuments data, including the current date
+        const now = new Date();
+        const currentDateString = now.toISOString().split('T')[0];
+        const prompt = `You are an assistant that helps users with HR document expiry information. Today's date is ${currentDateString}. Here is the list of upcoming document expiries (as JSON):\n${JSON.stringify(expiryDocuments)}\n\nThe user asked: '${userMessage}'.\n\nBased on the data and today's date, answer the user's question. If there are relevant expiring documents, list them with their document name and expiry date. If there are none, reply with a short, clear message.`;
+        const aiResponse = await getOpenAIResponse(prompt);
+        return aiResponse;
     } catch (error) {
         console.error("Error fetching upcoming document expiries:", error);
         throw error;
     }
 }
-module.exports = {
-    getUpcomingDocsExpiryReply,
+export {
+    getUpcomingDocsExpiryReply
 };

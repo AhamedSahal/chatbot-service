@@ -1,5 +1,5 @@
-const axios = require("axios");
-const { getOpenAIResponse } = require("./openaiServices");
+import axios from "axios";
+import { getOpenAIResponse } from "./openaiServices.js";
 
 
 async function getLeaveBalanceReply(userMessage, employeeId, authHeader, companyId) {
@@ -32,6 +32,6 @@ async function getLeaveBalanceReply(userMessage, employeeId, authHeader, company
   }
 }
 
-module.exports = {
-  getLeaveBalanceReply,
+export {
+  getLeaveBalanceReply
 };
