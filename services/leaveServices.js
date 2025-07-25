@@ -21,10 +21,9 @@ async function getLeaveBalanceReply(userMessage, employeeId, authHeader, company
     const response = await axios.get(url, { headers });
     const details = response.data?.data?.details;
     if (!Array.isArray(details)) return "Sorry, I couldn't retrieve your leave data.";
- 
-
+    
     // Pass the entire details array to OpenAI for analysis
-    const prompt = `Here is the leave data: ${JSON.stringify(details)}.\n\nUser query: ${userMessage}\n\nPlease analyze the data and provide an appropriate response.`;
+    const prompt = `The following leave data is available: ${JSON.stringify(details)}.User query: ${userMessage} Please analyze the data and provide a direct and conversational response without using phrases like 'Based on the data provided.'`;
     return await getOpenAIResponse(prompt);
   } catch (error) {
     console.error("Error fetching leave balance:", error.message);
