@@ -29,7 +29,7 @@ async function getHolidayReply(userMessage, locationId, authHeader, companyId) {
     console.log("Holidays data:", holidays);
 
     // Pass the current date and holidays array to OpenAI for analysis
-    const prompt = `Today's date is ${currentDate}. Here is the holiday data for the year ${year}: ${JSON.stringify(holidays)}.\n\nUser query: ${userMessage}\n\nPlease analyze the data and provide a concise response.`;
+    const prompt = `Today's date is ${currentDate}.The following holiday data is available: ${JSON.stringify(holidays)}.User query: ${userMessage} Please analyze the data and provide a direct and conversational response without using phrases like 'Based on the data provided.'`;
     return await getOpenAIResponse(prompt);
   } catch (error) {
     if (error.response?.status === 404) {

@@ -13,6 +13,7 @@ import { getEmployeesInfo } from "../CompanyAdminServices/employeesInfo.js";
 import { getPolicyDocumentDownload } from "../services/documentDownload.js";
 import { getPolicyInfoDocument } from "../services/DocumentProcess/index.js";
 import { getClockInOutReply } from "../services/clockInOutAction.js";
+import { getRegularizationReply } from "../services/regularization.js";
 
 async function handleChatbotRequest(req, res) {
   const { messages, locationId, employeeId } = req.body;
@@ -55,15 +56,16 @@ async function handleChatbotRequest(req, res) {
 
   const intentKeywords = {
     downloadPolicy: [["download", "policy"], ["policy", "document"], ["send", "policy"]],
-    PolicyInfo: [["policy", "info"], ["hr", "policy"], ["policies", "info"], ["policy", "details"], ["policy", "list"], ["hr", "policies"]],
-    leaveBalance: [["leave", "balance"]],
-    attendance: [["attendance"]],
+    PolicyInfo: [["policy", "info"], ["hr", "policy"], ["policies", "info"], ["policy"], ["policy", "list"], ["hr", "policies"]],
+    leave: [["leave"]],
+    attendance: [["monthly", "attendance"]],
     holiday: [["holiday"]],
     announcement: [["announcement"]],
     celebration: [["celebration"]],
     expiry: [["expiry"], ["expiring"]],
     salary: [["salary"], ["allowance"]],
     bank: [["bank"], ["account"]],
+    regularization: [["regularization"], ["attendance", "regularization"], ["regularize"], ["regularization request"]],
     clockInOut: [["clock", "in"], ["clock", "out"], ["check", "in"], ["check", "out"]]
   };
 
@@ -86,8 +88,13 @@ async function handleChatbotRequest(req, res) {
         const botReply = await getPolicyDocumentDownload(userMessage, employeeId, authHeader, companyId);
         return res.json({ botReply });
       }
-      case "leaveBalance": {
+      case "leave": {
         const botReply = await getLeaveBalanceReply(userMessage, employeeId, authHeader, companyId);
+        return res.json({ botReply });
+      }
+      case "regularization": {
+        console.log("Fetching regularization info for user message **************:", userMessage);
+        const botReply = await getRegularizationReply(userMessage, employeeId, authHeader, companyId);
         return res.json({ botReply });
       }
       case "PolicyInfo": {
@@ -123,10 +130,10 @@ async function handleChatbotRequest(req, res) {
         return res.json({ botReply });
       }
       case "clockInOut": {
-        console.log("Fetching clock in/out info for user message **************:", userMessage);
         const botReply = await getClockInOutReply(userMessage, employeeId, authHeader, companyId);
         return res.json({ botReply });
       }
+      
     }
 
     for (const [field, keywords] of Object.entries(fieldKeywordMap)) {
