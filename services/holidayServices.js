@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getOpenAIResponse } from "./openaiServices.js";
+import { getOpenAIResponse } from "./OpenAIServices/openaiServices.js";
 
 async function getHolidayReply(userMessage, locationId, authHeader, companyId) {
   const year = new Date().getFullYear();
@@ -26,10 +26,10 @@ async function getHolidayReply(userMessage, locationId, authHeader, companyId) {
     const response = await axios.get(url, { headers });
     console.log("Full API response:", response.data);
     const holidays = response.data?.data?.list || [];
-    console.log("Holidays data:", holidays);
+    console.log("Holidays data:", currentDate);
 
     // Pass the current date and holidays array to OpenAI for analysis
-    const prompt = `Today's date is ${currentDate}.The following holiday data is available: ${JSON.stringify(holidays)}.User query: ${userMessage} Please analyze the data and provide a direct and conversational response without using phrases like 'Based on the data provided.'`;
+    const prompt = `Today's date is ${currentDate}. Your Holidays is : ${JSON.stringify(holidays)}. User query: ${userMessage} Please analyze the data and provide a direct and conversational response.`;
     return await getOpenAIResponse(prompt);
   } catch (error) {
     if (error.response?.status === 404) {

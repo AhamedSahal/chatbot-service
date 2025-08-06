@@ -8,7 +8,7 @@ const openai = new OpenAI({
 
 const greetings = ["hi","ok", "hello", "thanks", "how are you", "hey", "good morning", "good evening"];
 const hrmsKeywords = [
-    "leave", "name", "announcement", "holiday", "attendance", "payroll", "HR", "employee",
+    "leave", "name", "announcement","regularization", "holiday", "attendance", "payroll", "HR", "employee",
     "profile", "department", "division", "grade", "job title", "designation", "role",
     "function", "section", "shift", "branch", "location", "workplace", "joining date",
     "doj", "nationality", "gender", "marital status", "manager", "experience",
@@ -18,29 +18,13 @@ const hrmsKeywords = [
 
 const greetingPrompt = `You are a friendly assistant. Respond warmly and politely to the user's greeting in a single sentence.`;
 
-const hrmsPrompt = `You are a helpful assistant. Answer the user's HRMS-related queries politely and concisely.`;
-
-const chatHistory = [];
-
-function updateChatHistory(userMessage, botResponse) {
-    const trimmedUserMessage = userMessage.slice(0, 100);
-    const trimmedBotResponse = botResponse.slice(0, 100);
-    chatHistory.push({ user: trimmedUserMessage, bot: trimmedBotResponse });
-
-    if (chatHistory.length > 6) {
-        chatHistory.shift(); 
-    }
-}
+const hrmsPrompt = `You are a helpful assistant. Answer the user's HRMS-related queries politely and concisely. For any date, use the format DD-MMM-YYYY. If the query is not related to HRMS, politely inform the user that you can only assist with HRMS-related queries.`;
 
 async function getOpenAIResponse(userMessage) {
     const isGreeting = greetings.some(greeting => userMessage.toLowerCase().includes(greeting));
     if (isGreeting) {
         const messages = [
             { role: "system", content: greetingPrompt },
-            ...chatHistory.map(chat => [
-                { role: "user", content: chat.user },
-                { role: "assistant", content: chat.bot }
-            ]).flat(),
             { role: "user", content: userMessage },
         ];
 
@@ -49,24 +33,16 @@ async function getOpenAIResponse(userMessage) {
             messages,
         });
 
-        const botResponse = response.choices[0].message.content;
-        updateChatHistory(userMessage, botResponse); // Update chat history
-        return botResponse;
+        return response.choices[0].message.content;
     }
 
     const isHRMSQuery = hrmsKeywords.some(keyword => userMessage.toLowerCase().includes(keyword));
     if (!isHRMSQuery) {
-        const botResponse = "I'm sorry, but I can only assist with HRMS-related queries.";
-        updateChatHistory(userMessage, botResponse); // Update chat history
-        return botResponse;
+        return "I'm sorry, but I can only assist with HRMS-related queries.";
     }
 
     const messages = [
         { role: "system", content: hrmsPrompt },
-        ...chatHistory.map(chat => [
-            { role: "user", content: chat.user },
-            { role: "assistant", content: chat.bot }
-        ]).flat(),
         { role: "user", content: userMessage },
     ];
 
@@ -75,9 +51,7 @@ async function getOpenAIResponse(userMessage) {
         messages,
     });
 
-    const botResponse = completion.choices[0].message.content;
-    updateChatHistory(userMessage, botResponse); // Update chat history
-    return botResponse;
+    return completion.choices[0].message.content;
 }
 
-export { getOpenAIResponse, chatHistory };
+export { getOpenAIResponse };

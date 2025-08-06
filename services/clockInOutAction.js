@@ -1,13 +1,13 @@
 import axios from "axios";
-import { getOpenAIResponse } from "./openaiServices.js";
+import { getOpenAIResponse } from "./OpenAIServices/openaiServices.js";
 
 async function getClockInOutReply(userMessage, employeeId, authHeader, companyId) {
     // Declare 'action' at the top of the function to ensure proper scoping
     let action;
 
     // Determine clock-in or clock-out action
-    const isClockIn = userMessage.match(/\b(clock in|check in|start work|begin shift)\b/i);
-    const isClockOut = userMessage.match(/\b(clock out|check out|end work|finish shift)\b/i);
+    const isClockIn = userMessage.match(/\b(clock in|clockin|check in|start work|begin shift)\b/i);
+    const isClockOut = userMessage.match(/\b(clock out|clockout|check out|end work|finish shift)\b/i);
 
     if (!isClockIn && !isClockOut) {
         throw new Error("Invalid clock-in/clock-out request. Please use phrases like 'clock in', 'start work', 'clock out', or 'end work'.");

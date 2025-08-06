@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getOpenAIResponse } from "../services/openaiServices.js";
+import { getOpenAIResponse } from "../services/OpenAIServices/openaiServices.js";
 
 async function getEmployeesInfo(foundEmployee, employeeId, authHeader, companyId) {
     const baseUrl = process.env.HRMS_API_TOKEN || "https://default-hrms-api-url.com";
