@@ -1,6 +1,6 @@
 import { getHolidayReply } from "../services/holidayServices.js";
 import { getLeaveBalanceReply } from "../services/leaveServices.js";
-import { getOpenAIResponse } from "../services/openaiServices.js";
+import { getOpenAIResponse } from "../services/OpenAIServices/openaiServices.js";
 import { getUpcomingAnnouncementReply } from "../services/announcement.js";
 import { getMonthlyAttendanceReply } from "../services/monthlyAttendance.js";
 import { getUpcomingCelebrationReply } from "../services/upcomingCelebration.js";
@@ -13,7 +13,9 @@ import { getEmployeesInfo } from "../CompanyAdminServices/employeesInfo.js";
 import { getPolicyDocumentDownload } from "../services/documentDownload.js";
 import { getPolicyInfoDocument } from "../services/DocumentProcess/index.js";
 import { getClockInOutReply } from "../services/clockInOutAction.js";
-import { getRegularizationReply } from "../services/regularization.js";
+import { getRegularizationReply } from "../services/Regularization/regularization.js";
+import { getOpenAIIntent } from "./intendController.js";
+import { ApplyAttendanceRegularization } from "../services/Regularization/applyRegularization.js";
 
 async function handleChatbotRequest(req, res) {
   const { messages, locationId, employeeId } = req.body;
@@ -25,11 +27,8 @@ async function handleChatbotRequest(req, res) {
     return res.status(400).json({ error: "Missing required parameters" });
   }
 
-
-
   const userMessage = messages[messages.length - 1].content.toLowerCase();
-  
-  
+  const globalChatMemory = [];
   const isFullProfileRequest = [
     "profile", "personal info", "company info", "my info", "employee info", "personal details"
   ].some(k => userMessage.includes(k));
@@ -53,87 +52,57 @@ async function handleChatbotRequest(req, res) {
     phone: ["phone", "contact number"],
     employeeId: ["employee id", "emp id"]
   };
-
-  const intentKeywords = {
-    downloadPolicy: [["download", "policy"], ["policy", "document"], ["send", "policy"]],
-    PolicyInfo: [["policy", "info"], ["hr", "policy"], ["policies", "info"], ["policy"], ["policy", "list"], ["hr", "policies"]],
-    leave: [["leave"]],
-    attendance: [["monthly", "attendance"]],
-    holiday: [["holiday"]],
-    announcement: [["announcement"]],
-    celebration: [["celebration"]],
-    expiry: [["expiry"], ["expiring"]],
-    salary: [["salary"], ["allowance"]],
-    bank: [["bank"], ["account"]],
-    regularization: [["regularization"], ["attendance", "regularization"], ["regularize"], ["regularization request"]],
-    clockInOut: [["clock", "in"], ["clock", "out"], ["check", "in"], ["check", "out"]]
-  };
-
-  function detectIntent(message) {
-    for (const [intent, patterns] of Object.entries(intentKeywords)) {
-      for (const pattern of patterns) {
-        if (pattern.every(word => message.includes(word))) {
-          return intent;
-        }
-      }
-    }
-    return null;
-  }
-
+;
   try {
-    const detectedIntent = detectIntent(userMessage);
-
+    console.log("handleChatbotRequest called with userMessage:", userMessage);
+    const detectedIntent = (await getOpenAIIntent(userMessage , globalChatMemory)).toLowerCase().replace("intent: ", "");
+    console.log("Detected OpenAI Intent:", detectedIntent);
     switch (detectedIntent) {
-      case "downloadPolicy": {
-        const botReply = await getPolicyDocumentDownload(userMessage, employeeId, authHeader, companyId);
-        return res.json({ botReply });
-      }
-      case "leave": {
-        const botReply = await getLeaveBalanceReply(userMessage, employeeId, authHeader, companyId);
-        return res.json({ botReply });
-      }
-      case "regularization": {
-        console.log("Fetching regularization info for user message **************:", userMessage);
-        const botReply = await getRegularizationReply(userMessage, employeeId, authHeader, companyId);
-        return res.json({ botReply });
-      }
-      case "PolicyInfo": {
-        const botReply = await getPolicyInfoDocument(userMessage, employeeId, authHeader, companyId);
-        return res.json({ botReply });
-      }
-      case "attendance": {
-        const botReply = await getMonthlyAttendanceReply(userMessage, locationId, authHeader, companyId);
-        return res.json({ botReply });
-      }
-      case "holiday": {
-        const botReply = await getHolidayReply(userMessage, locationId, authHeader, companyId);
-        return res.json({ botReply });
-      }
-      case "announcement": {
-        const botReply = await getUpcomingAnnouncementReply(userMessage, locationId, authHeader, companyId);
-        return res.json({ botReply });
-      }
-      case "celebration": {
-        const botReply = await getUpcomingCelebrationReply(userMessage, locationId, authHeader, companyId);
-        return res.json({ botReply });
-      }
-      case "expiry": {
-        const botReply = await getUpcomingDocsExpiryReply(userMessage, locationId, authHeader, companyId);
-        return res.json({ botReply });
-      }
-      case "salary": {
-        const botReply = await getSalaryInfoReply(userMessage, locationId, authHeader, companyId, employeeId);
-        return res.json({ botReply });
-      }
-      case "bank": {
-        const botReply = await getBankInfoReply(employeeId, authHeader, companyId);
-        return res.json({ botReply });
-      }
-      case "clockInOut": {
-        const botReply = await getClockInOutReply(userMessage, employeeId, authHeader, companyId);
-        return res.json({ botReply });
-      }
+      case "leave_balance":
+        return res.json({ botReply: await getLeaveBalanceReply(userMessage, employeeId, authHeader, companyId) });
+
+      case "leave_application":
+        return res.json({ botReply: await applyLeaveHandler(userMessage, employeeId, authHeader, companyId) });
+
+      case "leave_history":
+        return res.json({ botReply: await getLeaveReportReply(userMessage, employeeId, authHeader, companyId) });
+
+      case "attendance_summary":
+        return res.json({ botReply: await getMonthlyAttendanceReply(userMessage, locationId, authHeader, companyId) });
+
+      case "attendance_regularization_status":
+        console.log("Handling regularization request for user message:", userMessage);
+        return res.json({ botReply: await getRegularizationReply(userMessage, employeeId, authHeader, companyId) });
+
+      case "apply_attendance_regularization":
+        console.log("Handling attendance regularization request for user message:", userMessage);
+        return res.json({ botReply: await ApplyAttendanceRegularization(userMessage, employeeId, authHeader, companyId) });
+      case "clock_in_out":
+        return res.json({ botReply: await getClockInOutReply(userMessage, employeeId, authHeader, companyId) });
+
+      case "policy_download":
+        return res.json({ botReply: await getPolicyDocumentDownload(userMessage, employeeId, authHeader, companyId) });
+
+      case "policy_info":
+        return res.json({ botReply: await getPolicyInfoDocument(userMessage, employeeId, authHeader, companyId) });
       
+      case "holiday_info":
+        return res.json({ botReply: await getHolidayReply(userMessage, locationId, authHeader, companyId) });
+
+      case "upcoming_announcement":
+        return res.json({ botReply: await getUpcomingAnnouncementReply(userMessage, employeeId, authHeader, companyId) });
+
+      case "upcoming_celebration":
+        return res.json({ botReply: await getUpcomingCelebrationReply(userMessage, employeeId, authHeader, companyId) });
+
+      case "upcoming_docs_expiry":
+        return res.json({ botReply: await getUpcomingDocsExpiryReply(userMessage, employeeId, authHeader, companyId) });
+
+      case "salary_info":
+        return res.json({ botReply: await getSalaryInfoReply(userMessage, locationId, authHeader, companyId, employeeId) });
+
+      case "bank_info":
+        return res.json({ botReply: await getBankInfoReply(userMessage, employeeId, authHeader, companyId) });
     }
 
     for (const [field, keywords] of Object.entries(fieldKeywordMap)) {
@@ -148,8 +117,14 @@ async function handleChatbotRequest(req, res) {
       return res.json({ botReply });
     }
 
-    const botReply = await getOpenAIResponse(userMessage);
-    return res.json({ botReply });
+    const fallbackReply = await getOpenAIResponse(userMessage);
+    globalChatMemory.push({ user: userMessage.slice(0, 150), bot: fallbackReply?.botReply?.slice(0, 150) || fallbackReply.slice(0, 150) });
+    if (globalChatMemory.length > 6) {
+      globalChatMemory.shift();
+    }
+
+    console.log(fallbackReply ,"Updated globalChatMemory:", fallbackReply?.botReply);
+    return res.json({ botReply: fallbackReply });
   } catch (error) {
     console.error("Chatbot error:", error.message);
     return res.status(500).json({ botReply: "Something went wrong. Please try again later." });

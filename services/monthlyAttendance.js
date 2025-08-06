@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getOpenAIResponse } from "./openaiServices.js";
+import { getOpenAIResponse } from "./OpenAIServices/openaiServices.js";
 
 async function getMonthlyAttendanceReply(userMessage, locationId, authHeader, companyId) {
     const year = new Date().getFullYear();
@@ -29,7 +29,7 @@ async function getMonthlyAttendanceReply(userMessage, locationId, authHeader, co
         const attendanceData = response.data || [];
 
         // Pass the attendance data to OpenAI for analysis
-        const prompt = `Here is the monthly attendance data for ${year}-${month}: ${JSON.stringify(attendanceData)}.\n\nUser query: ${userMessage}\n\nPlease analyze the data and provide a concise response.`;
+        const prompt = `Your monthly attendance  ${year}-${month}: ${JSON.stringify(attendanceData)}.\n\nUser query: ${userMessage}\n\nPlease analyze the data and provide a concise response.`;
         return await getOpenAIResponse(prompt);
     } catch (error) {
         if (error.response?.status === 404) {

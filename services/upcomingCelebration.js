@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getOpenAIResponse } from "./openaiServices.js";
+import { getOpenAIResponse } from "./OpenAIServices/openaiServices.js";
 
 async function getUpcomingCelebrationReply(userMessage, locationId, authHeader, companyId) {
     const baseUrl = process.env.HRMS_API_TOKEN || "https://default-hrms-api-url.com";
@@ -26,7 +26,7 @@ async function getUpcomingCelebrationReply(userMessage, locationId, authHeader, 
         }
 
         // Pass the entire celebrations array to OpenAI for analysis
-        const prompt = `Here is the celebration data: ${JSON.stringify(celebrations)}.\n\nUser query: ${userMessage}\n\nPlease analyze the data and provide an appropriate response.`;
+        const prompt = `Your celebration: ${JSON.stringify(celebrations)}.\n\nUser query: ${userMessage}\n\nPlease analyze the data and provide an appropriate response.`;
         return await getOpenAIResponse(prompt);
     } catch (error) {
         if (error.response?.status === 404) {

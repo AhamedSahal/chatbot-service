@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getOpenAIResponse } from "./openaiServices.js";
+import { getOpenAIResponse } from "./OpenAIServices/openaiServices.js";
 
 
 
