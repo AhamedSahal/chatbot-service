@@ -17,6 +17,8 @@ import { getRegularizationReply } from "../services/Regularization/regularizatio
 import { getOpenAIIntent } from "./intendController.js";
 import { ApplyAttendanceRegularization } from "../services/Regularization/applyRegularization.js";
 
+let userhistory = [];
+
 async function handleChatbotRequest(req, res) {
   const { messages, locationId, employeeId } = req.body;
   const authHeader = req.headers.authorization;
@@ -28,7 +30,11 @@ async function handleChatbotRequest(req, res) {
   }
 
   const userMessage = messages[messages.length - 1].content.toLowerCase();
-  const globalChatMemory = [];
+
+  // Update userhistory with the last six messages
+  userhistory.push(userMessage);
+ 
+
   const isFullProfileRequest = [
     "profile", "personal info", "company info", "my info", "employee info", "personal details"
   ].some(k => userMessage.includes(k));
@@ -52,10 +58,10 @@ async function handleChatbotRequest(req, res) {
     phone: ["phone", "contact number"],
     employeeId: ["employee id", "emp id"]
   };
-;
+console.log("User message****** for intent detection:", userhistory);
   try {
     console.log("handleChatbotRequest called with userMessage:", userMessage);
-    const detectedIntent = (await getOpenAIIntent(userMessage , globalChatMemory)).toLowerCase().replace("intent: ", "");
+    const detectedIntent = (await getOpenAIIntent(userMessage , userhistory)).toLowerCase().replace("intent: ", "");
     console.log("Detected OpenAI Intent:", detectedIntent);
     switch (detectedIntent) {
       case "leave_balance":
@@ -118,12 +124,7 @@ async function handleChatbotRequest(req, res) {
     }
 
     const fallbackReply = await getOpenAIResponse(userMessage);
-    globalChatMemory.push({ user: userMessage.slice(0, 150), bot: fallbackReply?.botReply?.slice(0, 150) || fallbackReply.slice(0, 150) });
-    if (globalChatMemory.length > 6) {
-      globalChatMemory.shift();
-    }
-
-    console.log(fallbackReply ,"Updated globalChatMemory:", fallbackReply?.botReply);
+   
     return res.json({ botReply: fallbackReply });
   } catch (error) {
     console.error("Chatbot error:", error.message);
