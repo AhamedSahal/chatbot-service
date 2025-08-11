@@ -13,20 +13,20 @@ export async function getOpenAIIntent(userMessage, userhistory) {
  "salary_info", "holiday_info", "upcoming_announcement", "upcoming_celebration", "upcoming_docs_expiry"]
 
 Examples:
-- "How many leaves do I have left?" → leave_balance
+- "How many leaves do I have left?", "Show my remaining vacation", "How many sick days left?", → leave_balance
 - "I want to apply for vacation" → leave_application
 - "I want to clock in / clock out" → clock_in_out
 - "Show my attendance last month" → attendance_summary
 - "Did my regularization go through?" → attendance_regularization_status
 - "I want to regularize my attendance" → apply_attendance_regularization
 - "What is my bank account info?" → bank_info
-- "Download my company policy" → policy_download
-- "Where can I find policy details?" → policy_info
+- "Download my company policy", "Can you send policy?", "Please send me the leave policy" → policy_download
+- "Where can I find policy details?", "HR policies info", "Policy details for maternity leave" → policy_info
 - "What are the upcoming holidays?" → holiday_info
 - "Tell me about upcoming announcements" → upcoming_announcement
 - "What celebrations are coming up?" → upcoming_celebration
 - "What documents are expiring soon?" → upcoming_docs_expiry
-- "What is my salary information?" → salary_info
+- "What is my salary/allowance information?" → salary_info
 user message history: ${userhistory}
 User: "${userMessage}"`;
 

@@ -90,7 +90,7 @@ console.log("User message****** for intent detection:", userhistory);
         return res.json({ botReply: await getPolicyDocumentDownload(userMessage, employeeId, authHeader, companyId) });
 
       case "policy_info":
-        return res.json({ botReply: await getPolicyInfoDocument(userMessage, employeeId, authHeader, companyId) });
+        return res.json({ botReply: await getPolicyInfoDocument(userMessage, locationId, authHeader, companyId) });
       
       case "holiday_info":
         return res.json({ botReply: await getHolidayReply(userMessage, locationId, authHeader, companyId) });

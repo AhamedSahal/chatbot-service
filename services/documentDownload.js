@@ -23,7 +23,6 @@ async function getPolicyDocumentDownload(userMessage, locationId, authHeader, co
 
     const response = await axios.get(url, { headers });
     const policies = response.data?.data?.list || [];
-   
 
     // Use OpenAI to find the most relevant document based on user query
     const prompt = `You are an assistant that helps users download HR policy documents.\n\nHere is the list of available policy documents (as JSON):\n${JSON.stringify(policies)}\n\nThe user asked: '${userMessage}'.\n\nFrom the list, select the most relevant document (if any) and respond ONLY with a JSON object in this format: {\n  id: <document id>,\n  filename: <document filename>,\n  canDownload: true\n}\nIf no relevant document is found, respond with: { canDownload: false }`;
