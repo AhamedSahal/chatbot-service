@@ -16,15 +16,17 @@ import { getClockInOutReply } from "../services/clockInOutAction.js";
 import { getRegularizationReply } from "../services/Regularization/regularization.js";
 import { getOpenAIIntent } from "./intendController.js";
 import { ApplyAttendanceRegularization } from "../services/Regularization/applyRegularization.js";
+import jwt from "jsonwebtoken";
 
 let userhistory = [];
 
 async function handleChatbotRequest(req, res) {
+  console.log(req.headers, "handleChatbotRequest ***********************----------------------called with body:", req.body);
   const { messages, locationId, employeeId } = req.body;
   const authHeader = req.headers.authorization;
   const companyId = req.headers.companyid;
   const userType = req.headers.usertype;
-
+  console.log('11111111111111111111111111',jwt.decode(authHeader.split(" ")[1]));
   if (!messages || !employeeId || !authHeader || !companyId || !userType) {
     return res.status(400).json({ error: "Missing required parameters" });
   }
@@ -40,6 +42,7 @@ async function handleChatbotRequest(req, res) {
   ].some(k => userMessage.includes(k));
 
   const fieldKeywordMap = {
+    
     department: ["department", "team"],
     division: ["division"],
     grades: ["grade"],
@@ -77,11 +80,9 @@ console.log("User message****** for intent detection:", userhistory);
         return res.json({ botReply: await getMonthlyAttendanceReply(userMessage, locationId, authHeader, companyId) });
 
       case "attendance_regularization_status":
-        console.log("Handling regularization request for user message:", userMessage);
         return res.json({ botReply: await getRegularizationReply(userMessage, employeeId, authHeader, companyId) });
 
       case "apply_attendance_regularization":
-        console.log("Handling attendance regularization request for user message:", userMessage);
         return res.json({ botReply: await ApplyAttendanceRegularization(userMessage, employeeId, authHeader, companyId) });
       case "clock_in_out":
         return res.json({ botReply: await getClockInOutReply(userMessage, employeeId, authHeader, companyId) });
@@ -123,8 +124,7 @@ console.log("User message****** for intent detection:", userhistory);
       return res.json({ botReply });
     }
 
-    const fallbackReply = await getOpenAIResponse(userMessage);
-   
+    const fallbackReply = await getOpenAIResponse(userMessage, employeeId, companyId);
     return res.json({ botReply: fallbackReply });
   } catch (error) {
     console.error("Chatbot error:", error.message);

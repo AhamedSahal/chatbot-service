@@ -1,5 +1,7 @@
+
 import OpenAI from "openai";
 import dotenv from "dotenv";
+import { db } from "../../db.js";
 dotenv.config();
 
 const openai = new OpenAI({
@@ -20,8 +22,24 @@ const greetingPrompt = `You are a friendly assistant. Respond warmly and politel
 
 const hrmsPrompt = `You are a helpful assistant. Answer the user's HRMS-related queries politely and concisely. For any date, use the format DD-MMM-YYYY. If the query is not related to HRMS, politely inform the user that you can only assist with HRMS-related queries.`;
 
-async function getOpenAIResponse(userMessage) {
+
+// Save chat to MySQL
+async function saveChatToDB({ employeeId, companyId, userMessage, aiResponse }) {
+    try {
+        await db.query(
+            `INSERT INTO chat_logs (employee_id, company_id, user_message, ai_response, timestamp) VALUES (?, ?, ?, ?, NOW())`,
+            [employeeId, companyId, userMessage, aiResponse]
+        );
+    } catch (err) {
+        console.error("Failed to save chat log:", err);
+    }
+}
+
+// Main function now accepts employeeId and companyId
+async function getOpenAIResponse(userMessage, employeeId, companyId) {
     const isGreeting = greetings.some(greeting => userMessage.toLowerCase().includes(greeting));
+    let aiResponse;
+
     if (isGreeting) {
         const messages = [
             { role: "system", content: greetingPrompt },
@@ -33,25 +51,30 @@ async function getOpenAIResponse(userMessage) {
             messages,
         });
 
-        return response.choices[0].message.content;
+        aiResponse = response.choices[0].message.content;
+    } else {
+        const isHRMSQuery = hrmsKeywords.some(keyword => userMessage.toLowerCase().includes(keyword));
+        if (!isHRMSQuery) {
+            aiResponse = "I'm sorry, but I can only assist with HRMS-related queries.";
+        } else {
+            const messages = [
+                { role: "system", content: hrmsPrompt },
+                { role: "user", content: userMessage },
+            ];
+
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4",
+                messages,
+            });
+
+            aiResponse = completion.choices[0].message.content;
+        }
     }
 
-    const isHRMSQuery = hrmsKeywords.some(keyword => userMessage.toLowerCase().includes(keyword));
-    if (!isHRMSQuery) {
-        return "I'm sorry, but I can only assist with HRMS-related queries.";
-    }
+    // Save chat to DB
+    // await saveChatToDB({ employeeId, companyId, userMessage, aiResponse });
 
-    const messages = [
-        { role: "system", content: hrmsPrompt },
-        { role: "user", content: userMessage },
-    ];
-
-    const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages,
-    });
-
-    return completion.choices[0].message.content;
+    return aiResponse;
 }
 
 export { getOpenAIResponse };
