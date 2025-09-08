@@ -1,10 +1,14 @@
 import { findTopRelevantChunks } from "./embeddingUtils.js";
 import { generateAnswer, getQueryEmbedding } from "./openAIUtils.js";
-
+import { db } from '../../db.js';
 
 async function getPolicyInfoDocument(userMessage, locationId, authHeader, companyId) {
  
- const documentId = 5;
+const result = await db.query(
+  'SELECT id FROM chatbotpolicydocs'
+);
+const documentIds = result[0].map(row => row.id);
+const documentId = documentIds[0];
   try {
     const queryEmbedding = await getQueryEmbedding(userMessage);
     const topChunks = await findTopRelevantChunks(queryEmbedding, documentId, companyId);

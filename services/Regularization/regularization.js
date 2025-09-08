@@ -28,7 +28,7 @@ async function getRegularizationReply(userMessage, employeeId, authHeader, compa
   try {
     const response = await axios.get(url, { headers });
     const regularizations = response.data?.data?.list || [];
-
+console.log("Regularizations fetched:----------------------------------", response.data);
     // Filter the regularizations array to include only the specified fields
     const filteredRegularizations = regularizations.map(({ date, systemReason, regularizationStatus, regularizationRemarks, approvalstatus }) => ({
       date,
@@ -38,6 +38,10 @@ async function getRegularizationReply(userMessage, employeeId, authHeader, compa
       approvalstatus
     }));
     console.log("Regularizations fetched:----------------------------------", filteredRegularizations);
+    // If no regularization data is found for the given date range, return a natural message
+    if (!filteredRegularizations.length) {
+      return "There are no regularization records found for the selected date range. If you need further assistance, please let me know.";
+    }
     // Pass the current date and filtered regularizations array to OpenAI for analysis
     const prompt = `Today's date is ${dayjs().format("YYYY-MM-DD")}. Here is the regularization data: ${JSON.stringify(filteredRegularizations)}.\n\nUser query: ${userMessage}\n\nPlease provide a concise response.`;
     return await getOpenAIResponse(prompt);

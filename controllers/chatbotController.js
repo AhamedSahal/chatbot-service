@@ -16,24 +16,33 @@ import { getClockInOutReply } from "../services/clockInOutAction.js";
 import { getRegularizationReply } from "../services/Regularization/regularization.js";
 import { getOpenAIIntent } from "./intendController.js";
 import { ApplyAttendanceRegularization } from "../services/Regularization/applyRegularization.js";
+import jwt from "jsonwebtoken";
+
+let userhistory = [];
 
 async function handleChatbotRequest(req, res) {
+  console.log(req.headers, "handleChatbotRequest ***********************----------------------called with body:", req.body);
   const { messages, locationId, employeeId } = req.body;
   const authHeader = req.headers.authorization;
   const companyId = req.headers.companyid;
   const userType = req.headers.usertype;
-
+  console.log('11111111111111111111111111',jwt.decode(authHeader.split(" ")[1]));
   if (!messages || !employeeId || !authHeader || !companyId || !userType) {
     return res.status(400).json({ error: "Missing required parameters" });
   }
 
   const userMessage = messages[messages.length - 1].content.toLowerCase();
-  const globalChatMemory = [];
+
+  // Update userhistory with the last six messages
+  userhistory.push(userMessage);
+ 
+
   const isFullProfileRequest = [
     "profile", "personal info", "company info", "my info", "employee info", "personal details"
   ].some(k => userMessage.includes(k));
 
   const fieldKeywordMap = {
+    
     department: ["department", "team"],
     division: ["division"],
     grades: ["grade"],
@@ -52,10 +61,10 @@ async function handleChatbotRequest(req, res) {
     phone: ["phone", "contact number"],
     employeeId: ["employee id", "emp id"]
   };
-;
+console.log("User message****** for intent detection:", userhistory);
   try {
     console.log("handleChatbotRequest called with userMessage:", userMessage);
-    const detectedIntent = (await getOpenAIIntent(userMessage , globalChatMemory)).toLowerCase().replace("intent: ", "");
+    const detectedIntent = (await getOpenAIIntent(userMessage , userhistory)).toLowerCase().replace("intent: ", "");
     console.log("Detected OpenAI Intent:", detectedIntent);
     switch (detectedIntent) {
       case "leave_balance":
@@ -71,11 +80,9 @@ async function handleChatbotRequest(req, res) {
         return res.json({ botReply: await getMonthlyAttendanceReply(userMessage, locationId, authHeader, companyId) });
 
       case "attendance_regularization_status":
-        console.log("Handling regularization request for user message:", userMessage);
         return res.json({ botReply: await getRegularizationReply(userMessage, employeeId, authHeader, companyId) });
 
       case "apply_attendance_regularization":
-        console.log("Handling attendance regularization request for user message:", userMessage);
         return res.json({ botReply: await ApplyAttendanceRegularization(userMessage, employeeId, authHeader, companyId) });
       case "clock_in_out":
         return res.json({ botReply: await getClockInOutReply(userMessage, employeeId, authHeader, companyId) });
@@ -84,7 +91,7 @@ async function handleChatbotRequest(req, res) {
         return res.json({ botReply: await getPolicyDocumentDownload(userMessage, employeeId, authHeader, companyId) });
 
       case "policy_info":
-        return res.json({ botReply: await getPolicyInfoDocument(userMessage, employeeId, authHeader, companyId) });
+        return res.json({ botReply: await getPolicyInfoDocument(userMessage, locationId, authHeader, companyId) });
       
       case "holiday_info":
         return res.json({ botReply: await getHolidayReply(userMessage, locationId, authHeader, companyId) });
@@ -117,13 +124,7 @@ async function handleChatbotRequest(req, res) {
       return res.json({ botReply });
     }
 
-    const fallbackReply = await getOpenAIResponse(userMessage);
-    globalChatMemory.push({ user: userMessage.slice(0, 150), bot: fallbackReply?.botReply?.slice(0, 150) || fallbackReply.slice(0, 150) });
-    if (globalChatMemory.length > 6) {
-      globalChatMemory.shift();
-    }
-
-    console.log(fallbackReply ,"Updated globalChatMemory:", fallbackReply?.botReply);
+    const fallbackReply = await getOpenAIResponse(userMessage, employeeId, companyId);
     return res.json({ botReply: fallbackReply });
   } catch (error) {
     console.error("Chatbot error:", error.message);

@@ -1,25 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import waWebhook from './controllers/waWebhook.js';
 import { handleChatbotRequest } from './controllers/chatbotController.js';
 
 dotenv.config();
-
 const app = express();
-const port = process.env.PORT || 3001; 
+app.use(cors());
+app.use(express.json());
 
-app.use(cors()); // To handle CORS errors
+app.get('/', (_req, res) => res.send('Successfully deployed'));
+app.post('/api/chat', handleChatbotRequest);
+app.get('/webhook', waWebhook.verify);
+app.post('/webhook', waWebhook.receive);
 
-// ...existing code...
 
-app.get("/", (req, res) => {
-  res.send("Successfully deployed");
-});
-
-// API Route to Handle OpenAI Chatbot Request
-app.post('/api/chat', express.json(), handleChatbotRequest);
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(process.env.PORT || 5000, () => {
+  console.log(`Server on :${process.env.PORT || 5000}`);
 });
