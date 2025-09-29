@@ -144,18 +144,22 @@ async function sendWhatsAppText(toNoPlus, text) {
   await axios.post(
     GRAPH_URL(process.env.PHONE_NUMBER_ID),
     { messaging_product: 'whatsapp', to: toNoPlus, text: { body: text } },
-    { headers: { Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`, 
-    'Content-Type': 'application/json',
-     Accept: 'application/json' } }
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      }
+    }
   );
 }
 
 async function receive(req, res) {
-  
+
   try {
     const msg = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
     if (!msg) return res.sendStatus(200);
-    const from = msg.from;                
+    const from = msg.from;
     const userText = (msg.text?.body || '').trim();
     console.log("Received WhatsApp message: 6677", msg);
     // 1) Look up user by WhatsApp number in DB
@@ -163,11 +167,13 @@ async function receive(req, res) {
     let rows;
     try {
       [rows] = await db.query(
-      'SELECT company_id, branch_id, id, user_id,first_name,last_name, email FROM employees WHERE phone = ? LIMIT 1',
-      [from]
+        'SELECT company_id, branch_id, id, user_id,first_name,last_name, email FROM employees WHERE phone = ? LIMIT 1',
+        [from]
       );
     } catch (dbErr) {
-      return res.sendStatus(500);
+      console.error('DB lookup failed:', dbErr);
+      try { await sendWhatsAppText(from, 'Hi! Bot is online, DB is being configured. Please try again shortly.'); } catch { }
+      return res.sendStatus(200);   // ✅ not 500
     }
     if (!rows || rows.length === 0) {
       await sendWhatsAppText(from, 'Your number is not registered. Please contact admin.');
@@ -226,7 +232,7 @@ async function receive(req, res) {
       return res.sendStatus(200);
     } else if (needsMonthlyAuth) {
       // No session yet, expired monthly auth, or no trigger word: prompt to start
-      const message = session 
+      const message = session
         ? "Monthly authentication required. Reply 'hi' to start verification or type 'resend' to get a code."
         : "Reply 'hi' to start verification or type 'resend' to get a code.";
       await sendWhatsAppText(from, message);
@@ -273,7 +279,7 @@ async function receive(req, res) {
     };
     let replyText = '';
     const mockRes = { status: () => mockRes, json: d => replyText = d?.botReply || d?.reply || '' };
-   
+
     // OTP authentication section
     const monthlyAuthStillNeeded = isMonthlyAuthRequired(await getMonthlyAuthDate(from));
     if (monthlyAuthStillNeeded) {
