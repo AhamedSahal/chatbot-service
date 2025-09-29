@@ -11,8 +11,9 @@ app.use(express.json());
 
 app.get('/', (_req, res) => res.send('Successfully deployed'));
 app.post('/api/chat', handleChatbotRequest);
-app.get('/webhook', waWebhook.verify);
-app.post('/webhook', waWebhook.receive);
+app.get('/api/webhook', waWebhook.verify);
+app.post('/api/webhook', waWebhook.receive);
+
 
 
 app.listen(process.env.PORT || 5000, () => {
