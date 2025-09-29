@@ -157,8 +157,9 @@ async function receive(req, res) {
     if (!msg) return res.sendStatus(200);
     const from = msg.from;                
     const userText = (msg.text?.body || '').trim();
-    console.log("Received WhatsApp message:", msg);
+    console.log("Received WhatsApp message: 6677", msg);
     // 1) Look up user by WhatsApp number in DB
+    console.log('DB connection:', db && typeof db.query === 'function' ? 'OK' : 'NOT INITIALIZED');
     let rows;
     try {
       [rows] = await db.query(
