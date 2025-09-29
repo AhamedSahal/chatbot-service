@@ -4,7 +4,7 @@ import { handleChatbotRequest } from './chatbotController.js';
 import { sendOtpEmail } from '../AuthServices/otpEmailService.js';
 import { generateJWTToken } from '../AuthServices/jwtService.js';
 
-const GRAPH_URL = (id) => `https://graph.facebook.com/v20.0/${id}/messages`;
+const GRAPH_URL = (id) => `https://graph.facebook.com/v21.0/${id}/messages`;
 
 // OTP authentication section
 // Persist OTP sessions and monthly-auth marker in MySQL instead of memory for scalability
@@ -144,7 +144,9 @@ async function sendWhatsAppText(toNoPlus, text) {
   await axios.post(
     GRAPH_URL(process.env.PHONE_NUMBER_ID),
     { messaging_product: 'whatsapp', to: toNoPlus, text: { body: text } },
-    { headers: { Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}` } }
+    { headers: { Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`, 
+    'Content-Type': 'application/json',
+     Accept: 'application/json' } }
   );
 }
 
